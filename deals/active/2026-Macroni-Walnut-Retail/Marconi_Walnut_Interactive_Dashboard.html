@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atria CRE - Marconi & Walnut Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f1923;
+            color: #e0e0e0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b2d45 100%);
+            padding: 10px 24px;
+            border-bottom: 3px solid #e8853d;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            min-width: 160px;
+        }
+
+        .brand-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: #6cb4ee;
+            letter-spacing: 2px;
+        }
+
+        .brand-sub {
+            font-size: 11px;
+            color: #e8853d;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .header-divider {
+            width: 2px;
+            height: 36px;
+            background: linear-gradient(to bottom, #6cb4ee, #e8853d);
+            border-radius: 1px;
+        }
+
+        .header h1 {
+            font-size: 16px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .metrics-row {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .metric-card {
+            background-color: rgba(255, 255, 255, 0.04);
+            padding: 6px 14px;
+            border-radius: 6px;
+            border-left: 3px solid #e8853d;
+            display: flex;
+            flex-direction: column;
+            min-width: 100px;
+        }
+
+        .metric-label {
+            font-size: 9px;
+            color: #8aa8c7;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #6cb4ee;
+        }
+
+        /* ===== MAIN: SLIDERS + CHARTS SIDE BY SIDE ===== */
+        .main {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 12px;
+            padding: 10px 16px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .sidebar {
+            background-color: #13212e;
+            border-radius: 6px;
+            padding: 12px 14px;
+            overflow-y: auto;
+            border: 1px solid #1e3a52;
+        }
+
+        .slider-group {
+            margin-bottom: 14px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .slider-label .label-name { color: #c0d0e0; }
+        .slider-label .label-value { color: #e8853d; font-weight: bold; }
+
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #6cb4ee, #e8853d);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: #e8853d;
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(232, 133, 61, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: #e8853d;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 6px rgba(232, 133, 61, 0.5);
+        }
+
+        .charts-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .chart-container {
+            background-color: #13212e;
+            border-radius: 6px;
+            padding: 10px 14px;
+            border: 1px solid #1e3a52;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .chart-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #6cb4ee;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            flex-shrink: 0;
+        }
+
+        canvas {
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* ===== TABLES (compact bottom strip) ===== */
+        .tables-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 8px 16px 12px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .table-container {
+            background-color: #13212e;
+            border-radius: 6px;
+            padding: 10px 14px;
+            border: 1px solid #1e3a52;
+        }
+
+        .table-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #6cb4ee;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        table thead { border-bottom: 2px solid #1e3a52; }
+        table th { text-align: left; padding: 4px 6px; color: #6cb4ee; font-weight: 600; }
+        table td { padding: 3px 6px; border-bottom: 1px solid rgba(30, 58, 82, 0.5); }
+        table tr:hover { background-color: rgba(108, 180, 238, 0.05); }
+        .number { text-align: right; font-family: 'Courier New', monospace; color: #8cc4f0; }
+        .label { color: #a0b8cc; }
+
+        /* ===== SCROLLBARS ===== */
+        .sidebar::-webkit-scrollbar, .tables-section::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track, .tables-section::-webkit-scrollbar-track { background: #1e3a52; border-radius: 3px; }
+        .sidebar::-webkit-scrollbar-thumb, .tables-section::-webkit-scrollbar-thumb { background: #6cb4ee; border-radius: 3px; }
+        .sidebar, .tables-section { scrollbar-color: #6cb4ee #1e3a52; scrollbar-width: thin; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="brand">
+                <span class="brand-name">ATRIA CRE</span>
+                <span class="brand-sub">Acquisition Analysis</span>
+            </div>
+            <div class="header-divider"></div>
+            <h1>Marconi & Walnut Shopping Center</h1>
+            <div class="metrics-row">
+                <div class="metric-card">
+                    <span class="metric-label">Levered IRR</span>
+                    <span class="metric-value" id="metric-irr">9.35%</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Equity Multiple</span>
+                    <span class="metric-value" id="metric-em">1.44x</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">CoC Yr 2</span>
+                    <span class="metric-value" id="metric-coc">3.7%</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Going-In Cap</span>
+                    <span class="metric-value" id="metric-gic">5.99%</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Total Equity</span>
+                    <span class="metric-value" id="metric-equity">$988K</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="sidebar scrollbar">
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">Purchase Price ($K)</span>
+                        <span class="label-value" id="val-price">2000</span>
+                    </div>
+                    <input type="range" id="slider-price" min="1200" max="3000" step="50" value="2000">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">Exit Cap Rate (%)</span>
+                        <span class="label-value" id="val-exit-cap">8.00</span>
+                    </div>
+                    <input type="range" id="slider-exit-cap" min="5" max="12" step="0.25" value="8">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">Annual Rent Growth (%)</span>
+                        <span class="label-value" id="val-rent-growth">3.00</span>
+                    </div>
+                    <input type="range" id="slider-rent-growth" min="0" max="6" step="0.5" value="3">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">Bridge Rate (%)</span>
+                        <span class="label-value" id="val-bridge-rate">10.00</span>
+                    </div>
+                    <input type="range" id="slider-bridge-rate" min="6" max="14" step="0.25" value="10">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">Refi Rate (%)</span>
+                        <span class="label-value" id="val-refi-rate">7.25</span>
+                    </div>
+                    <input type="range" id="slider-refi-rate" min="5" max="10" step="0.25" value="7.25">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">IO Period (months)</span>
+                        <span class="label-value" id="val-io-months">12</span>
+                    </div>
+                    <input type="range" id="slider-io-months" min="0" max="24" step="3" value="12">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">Credit Loss (%)</span>
+                        <span class="label-value" id="val-credit-loss">5.00</span>
+                    </div>
+                    <input type="range" id="slider-credit-loss" min="0" max="15" step="1" value="5">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">OpEx Growth (%)</span>
+                        <span class="label-value" id="val-opex-growth">2.00</span>
+                    </div>
+                    <input type="range" id="slider-opex-growth" min="0" max="5" step="0.5" value="2">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">Mgmt Fee (%)</span>
+                        <span class="label-value" id="val-mgmt-fee">4.00</span>
+                    </div>
+                    <input type="range" id="slider-mgmt-fee" min="0" max="8" step="0.5" value="4">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">Market Rent ($/SF/mo)</span>
+                        <span class="label-value" id="val-market-rent">1.00</span>
+                    </div>
+                    <input type="range" id="slider-market-rent" min="0.50" max="2.00" step="0.05" value="1.00">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="label-name">Refi Month</span>
+                        <span class="label-value" id="val-refi-month">12</span>
+                    </div>
+                    <input type="range" id="slider-refi-month" min="6" max="36" step="3" value="12">
+                </div>
+            </div>
+
+            <div class="charts-area scrollbar">
+                <div class="chart-container">
+                    <div class="chart-title">Annual NOI</div>
+                    <canvas id="chart-noi"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Monthly Levered Cash Flow</div>
+                    <canvas id="chart-monthly-cf"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Cumulative Cash Flow</div>
+                    <canvas id="chart-cumulative-cf"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Tenant Rent Mix (Month 1 vs Month 60)</div>
+                    <canvas id="chart-tenant-mix"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="tables-section scrollbar">
+            <div class="table-container">
+                <div class="table-title">Sources & Uses</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th class="number">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-sources-uses">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-container">
+                <div class="table-title">Annual Summary</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th class="number">NOI</th>
+                            <th class="number">Debt Service</th>
+                            <th class="number">CF to Equity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-annual-summary">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== TENANT DATA ==========
+        const tenants = [
+            { name: "Middle East Bakery", suite: "4949 A1&A2", sf: 2230, lease_type: "NNN", base_rate: 1.030493273542601, esc: 0.019538771056290427, lease_end_type: "date", lease_end_months: 41, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.75, downtime: 6, ti_new: 25, ti_renew: 5, lc_new: 0.06, lc_renew: 0.03, nnn_conv: false, lease_up_mo: 0 },
+            { name: "VACANT (4949 B)", suite: "4949 B", sf: 910, lease_type: "NNN", base_rate: 0.9, esc: 0.0004315043060429957, lease_end_type: "empty", lease_end_months: 0, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.75, downtime: 6, ti_new: 25, ti_renew: 25, lc_new: 0.06, lc_renew: 0.06, nnn_conv: false, lease_up_mo: 6 },
+            { name: "Circle Pizza", suite: "4949 C", sf: 3620, lease_type: "NNN", base_rate: 1.408839779005525, esc: 0.019607843137254832, lease_end_type: "date", lease_end_months: 53, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.75, downtime: 6, ti_new: 25, ti_renew: 5, lc_new: 0.06, lc_renew: 0.03, nnn_conv: false, lease_up_mo: 0 },
+            { name: "Silver Sake", suite: "4949 D&E", sf: 1990, lease_type: "NNN", base_rate: 1.5075376884422111, esc: 0, lease_end_type: "mtm", lease_end_months: 0, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.50, downtime: 6, ti_new: 25, ti_renew: 5, lc_new: 0.06, lc_renew: 0.03, nnn_conv: false, lease_up_mo: 0 },
+            { name: "Waiel Merza", suite: "4949 F", sf: 810, lease_type: "NNN", base_rate: 0.9506172839506173, esc: 0.024858297938150642, lease_end_type: "date", lease_end_months: 35, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.75, downtime: 6, ti_new: 25, ti_renew: 5, lc_new: 0.06, lc_renew: 0.03, nnn_conv: false, lease_up_mo: 0 },
+            { name: "Cigarettes & Gifts", suite: "4949 G", sf: 810, lease_type: "NNN", base_rate: 1.2506172839506173, esc: 0, lease_end_type: "expired", lease_end_months: 0, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.75, downtime: 6, ti_new: 25, ti_renew: 5, lc_new: 0.06, lc_renew: 0.03, nnn_conv: false, lease_up_mo: 0 },
+            { name: "Brittany Hair & Nails", suite: "4949 H", sf: 810, lease_type: "MG", base_rate: 1.6975308641975309, esc: 0, lease_end_type: "expired", lease_end_months: 0, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.75, downtime: 6, ti_new: 25, ti_renew: 5, lc_new: 0.06, lc_renew: 0.03, nnn_conv: true, lease_up_mo: 0 },
+            { name: "Madeville Hair Salon", suite: "4949 I", sf: 810, lease_type: "NNN", base_rate: 1.219753086419753, esc: 0, lease_end_type: "mtm", lease_end_months: 0, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.50, downtime: 6, ti_new: 25, ti_renew: 5, lc_new: 0.06, lc_renew: 0.03, nnn_conv: false, lease_up_mo: 0 },
+            { name: "VACANT (4949 J)", suite: "4949 J", sf: 1350, lease_type: "NNN", base_rate: 0, esc: 0, lease_end_type: "empty", lease_end_months: 0, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0, downtime: 6, ti_new: 25, ti_renew: 25, lc_new: 0.06, lc_renew: 0.03, nnn_conv: false, lease_up_mo: 6 },
+            { name: "Sharing & Caring", suite: "4955 A", sf: 1350, lease_type: "MG", base_rate: 1.0185185185185186, esc: 0, lease_end_type: "mtm", lease_end_months: 0, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.50, downtime: 6, ti_new: 25, ti_renew: 5, lc_new: 0.06, lc_renew: 0.03, nnn_conv: true, lease_up_mo: 0 },
+            { name: "Spoteless Cleaners", suite: "4955 B", sf: 1310, lease_type: "NNN", base_rate: 0.8259541984732824, esc: 0, lease_end_type: "mtm", lease_end_months: 0, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.50, downtime: 6, ti_new: 25, ti_renew: 5, lc_new: 0.06, lc_renew: 0.03, nnn_conv: false, lease_up_mo: 0 },
+            { name: "Dawn's Pet Palace", suite: "4955 C", sf: 1880, lease_type: "NNN", base_rate: 0.801063829787234, esc: 0.030736144060146353, lease_end_type: "date", lease_end_months: 30, market_rent: 1.0, new_term: 60, renewal_term: 36, rent_growth_ref: true, renewal_prob: 0.75, downtime: 6, ti_new: 25, ti_renew: 5, lc_new: 0.06, lc_renew: 0.03, nnn_conv: false, lease_up_mo: 0 }
+        ];
+
+        const NRA = 17880;
+        const CLOSE_DATE = new Date(2026, 4, 1);
+        const EXIT_MONTH = 60;
+        const MONTHLY_OPEX_BASE = 15093.192500;
+        const ADDITIONAL_INCOME = 16513 / 12;
+        const BRIDGE_LTV = 0.70;
+        const REFI_LTV = 0.70;
+        const BRIDGE_AMORT = 300;
+        const REFI_AMORT = 300;
+        const REFI_ORIG_FEE_PCT = 0.02;
+        const BRIDGE_ORIG_FEE_PCT = 0.02;
+        const CLOSING_COSTS_PCT = 0.01;
+        const ACQ_FEE_PCT = 0.02;
+        const WC_RESERVE = 50000;
+        const CAPEX_RESERVE = 150000;
+        const TI_LC_RESERVE = 100000;
+        const CAPEX_MONTHLY_1_6 = 25000;
+        const REPL_RESERVE_ANNUAL_PSF = 0.50;
+        const AM_FEE_PCT = 0.01;
+        const LEGAL_MONTHLY = 500;
+        const EXIT_SELLING_COSTS_PCT = 0.02;
+
+        let modelParams = {
+            purchase_price: 2000000,
+            exit_cap: 0.08,
+            rent_growth: 0.03,
+            bridge_rate: 0.10,
+            refi_rate: 0.0725,
+            io_months: 12,
+            credit_loss_pct: 0.05,
+            opex_growth: 0.02,
+            mgmt_fee_pct: 0.04,
+            market_rent: 1.00,
+            refi_month: 12
+        };
+
+        let charts = {};
+
+        function initCharts() {
+            const baseOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#c0d0e0', font: { size: 10 } }
+                    }
+                }
+            };
+
+            // $ formatter for Y axis ticks
+            const dollarY = {
+                ticks: {
+                    color: '#8aa8c7', font: { size: 9 },
+                    callback: function(v) { return '$' + v.toLocaleString() + 'K'; }
+                },
+                grid: { color: '#1e3a52' }
+            };
+
+            // Monthly X axis: show every 6th label, larger font
+            const monthlyX = {
+                ticks: {
+                    color: '#c0d8ee', font: { size: 10, weight: 'bold' },
+                    maxRotation: 0, autoSkip: false,
+                    callback: function(val, idx) {
+                        const m = idx + 1;
+                        if (m === 1 || m % 6 === 0) return 'M' + m;
+                        return '';
+                    }
+                },
+                grid: { color: '#1e3a52' }
+            };
+
+            const defaultX = {
+                ticks: { color: '#8aa8c7', font: { size: 10 } },
+                grid: { color: '#1e3a52' }
+            };
+
+            if (charts.noi) charts.noi.destroy();
+            charts.noi = new Chart(document.getElementById('chart-noi'), {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: { ...baseOptions, scales: { x: defaultX, y: dollarY } }
+            });
+
+            if (charts.monthly) charts.monthly.destroy();
+            charts.monthly = new Chart(document.getElementById('chart-monthly-cf'), {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: { ...baseOptions, scales: { x: monthlyX, y: dollarY } }
+            });
+
+            if (charts.cumulative) charts.cumulative.destroy();
+            charts.cumulative = new Chart(document.getElementById('chart-cumulative-cf'), {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: { ...baseOptions, scales: { x: monthlyX, y: dollarY } }
+            });
+
+            if (charts.tenant) charts.tenant.destroy();
+            charts.tenant = new Chart(document.getElementById('chart-tenant-mix'), {
+                type: 'doughnut',
+                data: { labels: [], datasets: [] },
+                options: { ...baseOptions, scales: undefined }
+            });
+        }
+
+        function getTenantStatus(tenant, month) {
+            if (tenant.lease_end_type === "empty") {
+                return month < tenant.lease_up_mo ? "Vacant" : "Relet";
+            } else if (tenant.lease_end_type === "mtm") {
+                if (tenant.lease_up_mo > 0) {
+                    return month < tenant.lease_up_mo ? "Downtime" : "Relet";
+                } else {
+                    return month <= tenant.downtime ? "Downtime" : "Relet";
+                }
+            } else if (tenant.lease_end_type === "expired") {
+                return month <= tenant.downtime ? "Downtime" : "Relet";
+            } else {
+                if (month <= tenant.lease_end_months) return "In-Term";
+                else if (month <= tenant.lease_end_months + tenant.downtime) return "Downtime";
+                else return "Relet";
+            }
+        }
+
+        function getTenantRate(tenant, month, rent_growth, market_rent) {
+            const status = getTenantStatus(tenant, month);
+
+            if (status === "Vacant") {
+                return 0;
+            } else if (status === "In-Term") {
+                const yearsElapsed = Math.floor((month - 1) / 12);
+                return tenant.base_rate * Math.pow(1 + tenant.esc, yearsElapsed);
+            } else if (status === "Downtime" && tenant.lease_end_type === "mtm") {
+                return tenant.base_rate;
+            } else {
+                const yearsElapsed = Math.floor((month - 1) / 12);
+                return market_rent * Math.pow(1 + rent_growth, yearsElapsed);
+            }
+        }
+
+        function getTenantEffectiveRent(tenant, month, rent_growth, market_rent) {
+            const status = getTenantStatus(tenant, month);
+            const rate = getTenantRate(tenant, month, rent_growth, market_rent);
+
+            if (status === "Vacant") {
+                return 0;
+            } else if (status === "Downtime") {
+                return tenant.renewal_prob * rate * tenant.sf;
+            } else {
+                return rate * tenant.sf;
+            }
+        }
+
+        function getTenantNNNSF(tenant, month) {
+            const status = getTenantStatus(tenant, month);
+
+            if (tenant.lease_type === "NNN") {
+                if (status === "In-Term" || status === "Relet") return tenant.sf;
+                else if (status === "Downtime") return tenant.renewal_prob * tenant.sf;
+                else return 0;
+            } else if (tenant.nnn_conv) {
+                if (status === "Relet") return tenant.sf;
+                else if (status === "Downtime") return tenant.renewal_prob * tenant.sf;
+                else return 0;
+            }
+            return 0;
+        }
+
+        function getWasReletTriggered(tenant, month) {
+            if (month === 1) {
+                return getTenantStatus(tenant, 1) === "Relet";
+            }
+            const prevStatus = getTenantStatus(tenant, month - 1);
+            const currStatus = getTenantStatus(tenant, month);
+            return prevStatus !== "Relet" && currStatus === "Relet";
+        }
+
+        function calculateTICost(tenant, month, rent_growth, market_rent) {
+            if (!getWasReletTriggered(tenant, month)) return 0;
+
+            const renewal_prob = tenant.renewal_prob;
+            const renewal_rate = market_rent * Math.pow(1 + rent_growth, Math.floor((month - 1) / 12));
+            const weighted_ti = renewal_prob * tenant.ti_renew + (1 - renewal_prob) * tenant.ti_new;
+            return weighted_ti * tenant.sf;
+        }
+
+        function calculateLCCost(tenant, month, rent_growth, market_rent) {
+            if (!getWasReletTriggered(tenant, month)) return 0;
+
+            const renewal_prob = tenant.renewal_prob;
+            const renewal_rate = market_rent * Math.pow(1 + rent_growth, Math.floor((month - 1) / 12));
+            const weighted_lc = renewal_prob * tenant.lc_renew + (1 - renewal_prob) * tenant.lc_new;
+            return weighted_lc * renewal_rate * tenant.sf * 12 * (tenant.new_term / 12);
+        }
+
+        function pmt(rate_monthly, nper, pv) {
+            // Returns positive payment for negative PV (standard loan convention)
+            if (rate_monthly === 0) return -pv / nper;
+            const pow = Math.pow(1 + rate_monthly, nper);
+            return -pv * rate_monthly * pow / (pow - 1);
+        }
+
+        function calculateXIRR(dates, values) {
+            let guess = 0.1;
+            for (let iter = 0; iter < 100; iter++) {
+                let npv = 0, dnpv = 0;
+                for (let i = 0; i < dates.length; i++) {
+                    const daysDiff = (dates[i] - dates[0]) / (1000 * 86400);
+                    const t = daysDiff / 365.25;
+                    npv += values[i] / Math.pow(1 + guess, t);
+                    dnpv -= t * values[i] / (Math.pow(1 + guess, t + 1));
+                }
+                if (Math.abs(npv) < 1e-6) return guess;
+                guess = guess - npv / dnpv;
+            }
+            return guess;
+        }
+
+        function runModel() {
+            const p = modelParams;
+
+            const loan1 = BRIDGE_LTV * p.purchase_price;
+            const closing_costs = p.purchase_price * CLOSING_COSTS_PCT;
+            const orig_fee = loan1 * BRIDGE_ORIG_FEE_PCT;
+            const acq_fee = p.purchase_price * ACQ_FEE_PCT;
+            const total_uses = p.purchase_price + closing_costs + orig_fee + acq_fee + WC_RESERVE + CAPEX_RESERVE + TI_LC_RESERVE;
+            const total_equity = total_uses - loan1;
+
+            const monthlyData = {
+                gross_income: Array(61).fill(0),
+                credit_loss: Array(61).fill(0),
+                egi: Array(61).fill(0),
+                opex: Array(61).fill(0),
+                mgmt_fee: Array(61).fill(0),
+                total_nnn_sf: Array(61).fill(0),
+                reimbursement: Array(61).fill(0),
+                noi: Array(61).fill(0),
+                capex: Array(61).fill(0),
+                ti_total: Array(61).fill(0),
+                lc_total: Array(61).fill(0),
+                cf_before_debt: Array(61).fill(0),
+                total_debt_service: Array(61).fill(0),
+                repl_reserve: Array(61).fill(0),
+                am_fee: Array(61).fill(0),
+                levered_cf: Array(61).fill(0),
+                levered_ncf: Array(61).fill(0),
+                net_refi: Array(61).fill(0),
+                net_sale: Array(61).fill(0),
+                dates: [],
+                tenant_rents: {}
+            };
+
+            tenants.forEach(t => {
+                monthlyData.tenant_rents[t.name] = Array(61).fill(0);
+            });
+
+            // Debt state - tracked outside the loop
+            let bridge_balance = loan1;
+            let refi_balance = 0;
+            let refi_amount = 0;
+            const bridge_rate_monthly = p.bridge_rate / 12;
+            const refi_rate_monthly = p.refi_rate / 12;
+            // Fixed bridge PMT for amortization after IO (based on original loan amount)
+            const bridge_pmt_full = pmt(bridge_rate_monthly, BRIDGE_AMORT, -loan1);
+
+            for (let m = 1; m <= 60; m++) {
+                let total_rent = 0;
+                let total_nnn_sf = 0;
+
+                tenants.forEach(tenant => {
+                    const eff_rent = getTenantEffectiveRent(tenant, m, p.rent_growth, p.market_rent);
+                    total_rent += eff_rent;
+                    monthlyData.tenant_rents[tenant.name][m] = eff_rent;
+                    total_nnn_sf += getTenantNNNSF(tenant, m);
+                });
+
+                monthlyData.total_nnn_sf[m] = total_nnn_sf;
+                monthlyData.gross_income[m] = total_rent + ADDITIONAL_INCOME;
+                monthlyData.credit_loss[m] = -p.credit_loss_pct * monthlyData.gross_income[m];
+                monthlyData.egi[m] = monthlyData.gross_income[m] + monthlyData.credit_loss[m];
+
+                monthlyData.opex[m] = MONTHLY_OPEX_BASE * Math.pow(1 + p.opex_growth, (m - 1) / 12);
+                monthlyData.mgmt_fee[m] = p.mgmt_fee_pct * monthlyData.egi[m];
+
+                const total_expenses = monthlyData.opex[m] + monthlyData.mgmt_fee[m];
+                monthlyData.reimbursement[m] = (total_nnn_sf / NRA) * total_expenses;
+                monthlyData.noi[m] = monthlyData.egi[m] + monthlyData.reimbursement[m] - total_expenses;
+
+                monthlyData.capex[m] = (m <= 6) ? CAPEX_MONTHLY_1_6 : 0;
+
+                let ti_total = 0, lc_total = 0;
+                tenants.forEach(tenant => {
+                    ti_total += calculateTICost(tenant, m, p.rent_growth, p.market_rent);
+                    lc_total += calculateLCCost(tenant, m, p.rent_growth, p.market_rent);
+                });
+                monthlyData.ti_total[m] = ti_total;
+                monthlyData.lc_total[m] = lc_total;
+
+                monthlyData.cf_before_debt[m] = monthlyData.noi[m] - monthlyData.capex[m] - ti_total - lc_total;
+
+                // ===== DEBT SERVICE =====
+                // Bridge loan
+                let bridge_interest = bridge_balance * bridge_rate_monthly;
+                let bridge_principal = 0;
+                if (bridge_balance > 0) {
+                    if (m <= p.io_months) {
+                        bridge_principal = 0; // IO period
+                    } else {
+                        // Use PPMT equivalent: fixed PMT, principal = PMT - interest
+                        bridge_principal = bridge_pmt_full - bridge_interest;
+                    }
+                }
+                let bridge_payment = bridge_interest + bridge_principal;
+
+                // Bridge payoff at refi month
+                let bridge_payoff = 0;
+                if (m === p.refi_month && bridge_balance > 0) {
+                    bridge_payoff = bridge_balance - bridge_principal;
+                    bridge_balance = 0;
+                } else {
+                    bridge_balance -= bridge_principal;
+                }
+
+                // Refi loan sizing at refi month
+                let net_refi_cash = 0;
+                if (m === p.refi_month) {
+                    refi_amount = REFI_LTV * (monthlyData.noi[m] * 12) / p.exit_cap;
+                    const refi_orig = refi_amount * REFI_ORIG_FEE_PCT;
+                    net_refi_cash = refi_amount - bridge_payoff - refi_orig;
+                    refi_balance = refi_amount;
+                }
+
+                // Refi loan payments (starts at refi month)
+                let refi_interest = refi_balance * refi_rate_monthly;
+                let refi_principal = 0;
+                let refi_payment = 0;
+                if (refi_balance > 0 && m >= p.refi_month) {
+                    const refi_pmt_full = pmt(refi_rate_monthly, REFI_AMORT, -refi_amount);
+                    refi_interest = refi_balance * refi_rate_monthly;
+                    refi_principal = refi_pmt_full - refi_interest;
+                    refi_payment = refi_pmt_full;
+                    refi_balance -= refi_principal;
+                }
+
+                monthlyData.total_debt_service[m] = bridge_payment + refi_payment;
+                monthlyData.net_refi[m] = net_refi_cash;
+
+                // Reserves & entity expenses
+                monthlyData.repl_reserve[m] = REPL_RESERVE_ANNUAL_PSF * NRA / 12;
+                monthlyData.am_fee[m] = AM_FEE_PCT * total_equity / 12;
+
+                // Cash available for distribution (operating CF after debt + reserves + entity)
+                monthlyData.levered_cf[m] = monthlyData.cf_before_debt[m]
+                    - monthlyData.total_debt_service[m]
+                    - monthlyData.repl_reserve[m]
+                    - monthlyData.am_fee[m]
+                    - LEGAL_MONTHLY;
+
+                // Sale at exit
+                let net_sale = 0;
+                if (m === EXIT_MONTH) {
+                    const t12_noi = monthlyData.noi[m] * 12;
+                    const gross_sale = t12_noi / p.exit_cap;
+                    const selling_costs = EXIT_SELLING_COSTS_PCT * gross_sale;
+                    // Loan payoff = remaining refi balance (already reduced by this month's principal)
+                    const loan_payoff = refi_balance > 0 ? refi_balance : bridge_balance;
+                    net_sale = gross_sale - selling_costs - loan_payoff;
+                }
+                monthlyData.net_sale[m] = net_sale;
+
+                // Levered NCF for IRR = equity + operating CF + refi + sale
+                const equity_cf = (m === 1) ? -total_equity : 0;
+                monthlyData.levered_ncf[m] = equity_cf + monthlyData.levered_cf[m] + net_refi_cash + net_sale;
+
+                const date = new Date(CLOSE_DATE);
+                date.setMonth(date.getMonth() + (m - 1));
+                monthlyData.dates.push(date);
+            }
+
+            // Build XIRR arrays from levered_ncf (already includes equity at month 1)
+            const cf_array = [];
+            const date_array = [];
+            for (let m = 1; m <= EXIT_MONTH; m++) {
+                cf_array.push(monthlyData.levered_ncf[m]);
+                date_array.push(monthlyData.dates[m - 1]);
+            }
+
+            const irr = calculateXIRR(date_array, cf_array);
+
+            const total_cash_flow = cf_array.reduce((a, b) => a + b, 0);
+            const equity_multiple = 1 + total_cash_flow / total_equity;
+
+            // CoC Year 2 = sum of operating CF months 13-24 / equity
+            let yr2_cf = 0;
+            for (let m = 13; m <= 24; m++) yr2_cf += monthlyData.levered_cf[m];
+            const coc_yr2 = yr2_cf / total_equity;
+
+            const gic = monthlyData.noi[1] * 12 / p.purchase_price;
+
+            return {
+                irr, equity_multiple, coc_yr2, gic, total_equity, loan1, closing_costs, orig_fee, acq_fee, total_uses,
+                monthlyData
+            };
+        }
+
+        function updateUI() {
+            const result = runModel();
+            const p = modelParams;
+
+            document.getElementById('metric-irr').textContent = (result.irr * 100).toFixed(2) + '%';
+            document.getElementById('metric-em').textContent = result.equity_multiple.toFixed(2) + 'x';
+            document.getElementById('metric-coc').textContent = (result.coc_yr2 * 100).toFixed(1) + '%';
+            document.getElementById('metric-gic').textContent = (result.gic * 100).toFixed(2) + '%';
+            document.getElementById('metric-equity').textContent = '$' + (result.total_equity / 1000).toFixed(0) + 'K';
+
+            const su_html = `
+                <tr><td class="label">Purchase Price</td><td class="number">$${(p.purchase_price / 1e6).toFixed(2)}M</td></tr>
+                <tr><td class="label">Closing Costs (1%)</td><td class="number">$${(result.closing_costs / 1000).toFixed(0)}K</td></tr>
+                <tr><td class="label">Bridge Orig Fee (2%)</td><td class="number">$${(result.orig_fee / 1000).toFixed(0)}K</td></tr>
+                <tr><td class="label">Acq Fee (2%)</td><td class="number">$${(result.acq_fee / 1000).toFixed(0)}K</td></tr>
+                <tr><td class="label">WC Reserve</td><td class="number">$50K</td></tr>
+                <tr><td class="label">CapEx Reserve</td><td class="number">$150K</td></tr>
+                <tr><td class="label">TI/LC Reserve</td><td class="number">$100K</td></tr>
+                <tr style="border-top: 2px solid #1e3a52;"><td style="font-weight: bold; color: #6cb4ee;">Total Uses</td><td class="number" style="font-weight: bold; color: #6cb4ee;">$${(result.total_uses / 1e6).toFixed(2)}M</td></tr>
+                <tr><td class="label">Bridge Loan (70%)</td><td class="number">-$${(result.loan1 / 1e6).toFixed(2)}M</td></tr>
+                <tr style="border-top: 2px solid #1e3a52;"><td style="font-weight: bold; color: #6cb4ee;">Total Equity</td><td class="number" style="font-weight: bold; color: #6cb4ee;">$${(result.total_equity / 1000).toFixed(0)}K</td></tr>
+            `;
+            document.getElementById('table-sources-uses').innerHTML = su_html;
+
+            let annual_html = '';
+            for (let year = 1; year <= 5; year++) {
+                const m1 = (year - 1) * 12 + 1;
+                const m12 = year * 12;
+                let year_noi = 0, year_ds = 0, year_cf = 0;
+                for (let m = m1; m <= m12 && m <= 60; m++) {
+                    year_noi += result.monthlyData.noi[m];
+                    year_ds += result.monthlyData.total_debt_service[m];
+                    year_cf += result.monthlyData.levered_cf[m];
+                }
+                annual_html += `<tr><td class="label">Year ${year}</td><td class="number">$${(year_noi / 1000).toFixed(0)}K</td><td class="number">$${(year_ds / 1000).toFixed(0)}K</td><td class="number">$${(year_cf / 1000).toFixed(0)}K</td></tr>`;
+            }
+            document.getElementById('table-annual-summary').innerHTML = annual_html;
+
+            updateCharts(result);
+        }
+
+        function updateCharts(result) {
+            const annual_noi = [];
+            for (let year = 1; year <= 5; year++) {
+                let sum = 0;
+                for (let m = (year - 1) * 12 + 1; m <= year * 12; m++) {
+                    sum += result.monthlyData.noi[m];
+                }
+                annual_noi.push(sum / 1000);
+            }
+            charts.noi.data = {
+                labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                datasets: [{
+                    label: 'NOI ($K)',
+                    data: annual_noi,
+                    backgroundColor: '#e8853d',
+                    borderColor: '#e8853d'
+                }]
+            };
+            charts.noi.update();
+
+            const monthly_cf = [];
+            for (let m = 1; m <= 60; m++) {
+                monthly_cf.push(result.monthlyData.levered_cf[m] / 1000);
+            }
+            charts.monthly.data = {
+                labels: Array.from({length: 60}, (_, i) => `M${i + 1}`),
+                datasets: [{
+                    label: 'Levered CF ($K)',
+                    data: monthly_cf,
+                    borderColor: '#6cb4ee',
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 1
+                }]
+            };
+            charts.monthly.update();
+
+            let cumsum = 0;
+            const cumulative = [];
+            for (let m = 1; m <= 60; m++) {
+                cumsum += result.monthlyData.levered_ncf[m];
+                cumulative.push(cumsum / 1000);
+            }
+            charts.cumulative.data = {
+                labels: Array.from({length: 60}, (_, i) => `M${i + 1}`),
+                datasets: [{
+                    label: 'Cumulative CF ($K)',
+                    data: cumulative,
+                    borderColor: '#e8853d',
+                    borderWidth: 2,
+                    fill: true,
+                    backgroundColor: 'rgba(232, 133, 61, 0.1)',
+                    pointRadius: 1
+                }]
+            };
+            charts.cumulative.update();
+
+            const m1_rent = tenants.map(t => result.monthlyData.tenant_rents[t.name][1] / 1000);
+
+            charts.tenant.data = {
+                labels: tenants.map(t => t.name),
+                datasets: [
+                    {
+                        label: 'Month 1',
+                        data: m1_rent,
+                        backgroundColor: ['#6cb4ee', '#e8853d', '#4a90c4', '#f0a060', '#3778a8', '#d47030', '#8cc4f0', '#c06820', '#5ea0d8', '#ffb870', '#2e6898', '#e89860'],
+                        borderColor: '#0f1923'
+                    }
+                ]
+            };
+            charts.tenant.update();
+        }
+
+        function setupSliders() {
+            document.getElementById('slider-price').addEventListener('input', (e) => {
+                modelParams.purchase_price = parseFloat(e.target.value) * 1000;
+                document.getElementById('val-price').textContent = e.target.value;
+                updateUI();
+            });
+
+            document.getElementById('slider-exit-cap').addEventListener('input', (e) => {
+                modelParams.exit_cap = parseFloat(e.target.value) / 100;
+                document.getElementById('val-exit-cap').textContent = (parseFloat(e.target.value)).toFixed(2);
+                updateUI();
+            });
+
+            document.getElementById('slider-rent-growth').addEventListener('input', (e) => {
+                modelParams.rent_growth = parseFloat(e.target.value) / 100;
+                document.getElementById('val-rent-growth').textContent = (parseFloat(e.target.value)).toFixed(2);
+                updateUI();
+            });
+
+            document.getElementById('slider-bridge-rate').addEventListener('input', (e) => {
+                modelParams.bridge_rate = parseFloat(e.target.value) / 100;
+                document.getElementById('val-bridge-rate').textContent = (parseFloat(e.target.value)).toFixed(2);
+                updateUI();
+            });
+
+            document.getElementById('slider-refi-rate').addEventListener('input', (e) => {
+                modelParams.refi_rate = parseFloat(e.target.value) / 100;
+                document.getElementById('val-refi-rate').textContent = (parseFloat(e.target.value)).toFixed(2);
+                updateUI();
+            });
+
+            document.getElementById('slider-io-months').addEventListener('input', (e) => {
+                modelParams.io_months = parseInt(e.target.value);
+                document.getElementById('val-io-months').textContent = e.target.value;
+                updateUI();
+            });
+
+            document.getElementById('slider-credit-loss').addEventListener('input', (e) => {
+                modelParams.credit_loss_pct = parseFloat(e.target.value) / 100;
+                document.getElementById('val-credit-loss').textContent = (parseFloat(e.target.value)).toFixed(2);
+                updateUI();
+            });
+
+            document.getElementById('slider-opex-growth').addEventListener('input', (e) => {
+                modelParams.opex_growth = parseFloat(e.target.value) / 100;
+                document.getElementById('val-opex-growth').textContent = (parseFloat(e.target.value)).toFixed(2);
+                updateUI();
+            });
+
+            document.getElementById('slider-mgmt-fee').addEventListener('input', (e) => {
+                modelParams.mgmt_fee_pct = parseFloat(e.target.value) / 100;
+                document.getElementById('val-mgmt-fee').textContent = (parseFloat(e.target.value)).toFixed(2);
+                updateUI();
+            });
+
+            document.getElementById('slider-market-rent').addEventListener('input', (e) => {
+                modelParams.market_rent = parseFloat(e.target.value);
+                document.getElementById('val-market-rent').textContent = (parseFloat(e.target.value)).toFixed(2);
+                updateUI();
+            });
+
+            document.getElementById('slider-refi-month').addEventListener('input', (e) => {
+                modelParams.refi_month = parseInt(e.target.value);
+                document.getElementById('val-refi-month').textContent = e.target.value;
+                updateUI();
+            });
+        }
+
+        initCharts();
+        setupSliders();
+        updateUI();
+    </script>
+</body>
+</html>
