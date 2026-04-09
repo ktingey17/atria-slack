@@ -1,22 +1,30 @@
-# Tingey/Finch Acquisitions
+# Atria Acquisitions — Second Brain
 
-Shared acquisitions workspace for Keegan Tingey and Connor Finch. Value-add retail, office, and flex deals in the California Central Valley and select Bay Area submarkets. Sub-$10M typical.
+Shared acquisitions workspace and **second brain** for Keegan Tingey and Connor Finch. Value-add retail, office, and flex deals in the California Central Valley and select Bay Area submarkets. Sub-$10M typical.
 
-This repo is a **living knowledge base**. Keegan and Connor work deals in Slack with Claude; meaningful outputs — memos, lease abstracts, rent roll audits, comp work, decisions, post-mortems — get committed back here. Over time it becomes a searchable archive of every deal we've touched and why.
+This repo is a **persistent memory layer for Slack.** Keegan and Connor work deals in Slack with Claude; meaningful outputs — memos, lease abstracts, rent roll audits, comp work, decisions, post-mortems — get committed back here. The `memory/` folder keeps Claude current across sessions so every Slack interaction picks up where the last one left off.
 
 ## How it works
 
-1. **Discussion happens in Slack.** @mention Claude in a deal channel with whatever the deal needs — underwriting questions, lease review, rent roll audit, memo draft, comp pull, waterfall audit.
-2. **Claude reads this repo first.** `CLAUDE.md` gives it team, thesis, underwriting conventions, and behavioral guidelines. Deal folders give it deal-specific context.
-3. **Claude does the work and commits it back.** Output lands in the right deal folder via PR. Review, merge, move on.
+1. **Discussion happens in Slack.** @mention Claude in the Atria channel with whatever the deal needs — underwriting questions, lease review, rent roll audit, memo draft, comp pull, waterfall audit.
+2. **Claude reads the brain first.** `CLAUDE.md` + `memory/context.md` give it team, thesis, conventions, current pipeline state, recent decisions, and lessons learned.
+3. **Claude does the work and commits it back.** Output lands in the right folder. Memory files get updated when state changes.
 4. **You can always come back.** Pull up any deal folder and see the full history — what we looked at, what we decided, what we learned.
 
 ## Structure
 
-- `CLAUDE.md` — context and conventions. Start here.
-- `deals/` — one folder per deal, named `YYYY-MM-Property-City/`
-- `market/` — submarket notes, broker relationships, demographic data
-- `conversations/` — optional archive of high-value Slack threads
+```
+memory/              → The second brain core: live state, decisions, lessons, glossary
+deals/active/        → Currently active deal folders
+deals/passed/        → Dead deals with post-mortems
+deals/closed/        → Closed deals
+market/              → Submarket notes, comps, broker network
+research/            → Playbooks, strategies, general research
+meetings/            → Call notes, weekly syncs
+planning/            → Strategic planning, goals, pipeline targets
+conversations/       → Archived high-value Slack threads
+claude.md            → Claude's operating instructions
+```
 
 ## Example Slack prompts
 
@@ -26,11 +34,10 @@ This repo is a **living knowledge base**. Keegan and Connor work deals in Slack 
 @Claude draft a one-page memo for the Fairfield deal based on what's in the folder
 @Claude pull together a rent comp set for Stockton flex under 10k sf and save it
 @Claude write a post-mortem for [dead deal] — why we passed
+@Claude what's our current pipeline look like?
+@Claude what did we decide on Quail Lakes?
+@Claude what lessons have we learned about waterfall audits?
 ```
-
-## Using this as a launch pad
-
-This repo is also meant to seed new work. Pull a deal folder into a fresh Claude Code session when you want to go deeper — build a model, draft an LOI, prep for a broker call — and the context travels with you.
 
 ## Not in scope
 
